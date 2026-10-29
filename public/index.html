@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Donate – Chabad Lubavitch Youth Organization</title>
+  <meta name="description" content="Make a secure online donation to the Chabad Lubavitch Youth Organization.">
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <button type="button" id="langToggle" class="lang" aria-label="Changer la langue / Change language">Français</button>
+  </header>
+
+  <main class="card">
+    <img src="logo.png" alt="Chabad Lubavitch Youth Organization" class="logo" width="240">
+
+    <!-- Donation form -->
+    <section id="formView">
+      <h1 data-i18n="title">Make a donation</h1>
+      <p class="intro" data-i18n="intro">Your generous gift supports the programs and activities of the Chabad Lubavitch Youth Organization.</p>
+
+      <form id="donateForm" novalidate>
+        <label for="project" class="label" data-i18n="projectLabel">Where should your gift go?</label>
+        <select id="project" name="project"></select>
+
+        <span class="label" data-i18n="amountLabel">Amount (CAD)</span>
+        <div class="amounts" role="group" aria-label="Amount">
+          <button type="button" class="chip" data-amount="18">$18</button>
+          <button type="button" class="chip" data-amount="36">$36</button>
+          <button type="button" class="chip" data-amount="54">$54</button>
+          <button type="button" class="chip" data-amount="100">$100</button>
+          <button type="button" class="chip" data-amount="180">$180</button>
+          <button type="button" class="chip" data-amount="360">$360</button>
+        </div>
+        <div class="other">
+          <span class="dollar">$</span>
+          <input id="otherAmount" type="number" inputmode="decimal" min="1" step="0.01"
+                 placeholder="Other amount" data-i18n-placeholder="otherPlaceholder" aria-label="Other amount">
+        </div>
+
+        <p id="formError" class="error" role="alert" hidden></p>
+
+        <button type="submit" id="donateBtn" class="donate">
+          <span data-i18n="donateBtn">Donate</span> <span id="btnAmount"></span>
+        </button>
+        <p class="secure" data-i18n="secure">🔒 Payments are processed securely by Moneris. We never see your card number.</p>
+      </form>
+    </section>
+
+    <!-- Result -->
+    <section id="resultView" hidden>
+      <h1 id="resultTitle"></h1>
+      <p id="resultText" class="intro"></p>
+      <dl id="resultDetails" class="details"></dl>
+      <button type="button" id="againBtn" class="donate secondary" data-i18n="again">Make another donation</button>
+    </section>
+  </main>
+
+  <!-- Moneris Checkout opens here -->
+  <div id="checkoutOverlay" hidden>
+    <div id="monerisCheckout"></div>
+  </div>
+
+  <footer class="foot">
+    <span>Chabad Lubavitch Youth Organization</span>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
