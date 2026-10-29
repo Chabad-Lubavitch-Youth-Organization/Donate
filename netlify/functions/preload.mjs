@@ -6,7 +6,7 @@
 import projects from "../../public/projects.js";
 import { monerisConfig, callMoneris, json } from "../lib/moneris.mjs";
 
-const MIN_AMOUNT = 1;
+const MIN_AMOUNT = 5;
 const MAX_AMOUNT = 50000;
 
 export default async (req) => {
