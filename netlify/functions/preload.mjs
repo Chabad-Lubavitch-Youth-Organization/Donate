@@ -56,7 +56,14 @@ export default async (req) => {
     environment: cfg.env,
     action: "preload",
     order_no: orderNo,
-    cust_id: project.code,
+    // Cust ID shows on the Moneris receipt and reports: the project's English name.
+    // Moneris allows letters, digits, spaces and _ - : . @ (max 50 characters).
+    cust_id: project.en
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9 _\-:.@]/g, "")
+      .trim()
+      .slice(0, 50) || project.code,
     language: lang,
   };
 

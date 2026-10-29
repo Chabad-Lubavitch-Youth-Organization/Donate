@@ -48,8 +48,8 @@ body {
   width: calc(100% - 32px);
   max-width: 528px;
   position: relative;
-  margin: 16px;
-  padding: 22px 28px 22px;
+  margin: 10px 16px 8px;
+  padding: 18px 28px 18px;
   background: var(--card);
   border-radius: 18px;
   border-top: 5px solid var(--gold);
@@ -58,8 +58,8 @@ body {
 
 .logo {
   display: block;
-  margin: 0 auto 10px;
-  width: 170px;
+  margin: 0 auto 6px;
+  width: 140px;
   max-width: 45%;
   height: auto;
 }
@@ -71,7 +71,7 @@ h1 {
   line-height: 1.2;
   text-align: center;
   color: var(--navy);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
 }
 
 .intro {
@@ -85,7 +85,7 @@ h1 {
   display: block;
   font-weight: 600;
   font-size: 14px;
-  margin: 14px 0 6px;
+  margin: 12px 0 5px;
 }
 
 select, .other input {
@@ -148,8 +148,8 @@ select:focus, .other input:focus, .chip:focus-visible, .donate:focus-visible, .l
 
 .donate {
   width: 100%;
-  margin-top: 16px;
-  padding: 13px;
+  margin-top: 14px;
+  padding: 12px;
   font: inherit;
   font-weight: 600;
   font-size: 17px;
@@ -199,9 +199,19 @@ select:focus, .other input:focus, .chip:focus-visible, .donate:focus-visible, .l
   min-height: 100%;
 }
 
+.org {
+  max-width: 528px;
+  margin: 0 16px 10px;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.org strong { font-weight: 600; color: var(--ink); }
+
 @media (max-width: 480px) {
   .card { padding: 20px 16px 18px; }
   h1 { font-size: 24px; }
   .amounts { grid-template-columns: repeat(3, 1fr); }
-  .logo { width: 140px; }
+  .logo { width: 120px; }
 }

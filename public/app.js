@@ -28,11 +28,13 @@ const TEXT = {
     dAmount: "Amount",
     dProject: "Project",
     dOrder: "Reference",
+    charityNo: "Charitable registration no.",
+    orgName: "Chabad Lubavitch Youth Organization",
   },
   fr: {
     toggle: "English",
     title: "Faire un don",
-    intro: "Votre généreux don soutient les programmes et activités de la Chabad Lubavitch Youth Organization.",
+    intro: "Votre généreux don soutient les programmes et activités de l'Organisation de la jeunesse Chabad Loubavitch.",
     projectLabel: "À quel projet destinez-vous votre don?",
     amountLabel: "Montant (CAD)",
     otherPlaceholder: "Autre montant",
@@ -52,6 +54,8 @@ const TEXT = {
     dAmount: "Montant",
     dProject: "Projet",
     dOrder: "Référence",
+    charityNo: "No d'enregistrement d'organisme de bienfaisance",
+    orgName: "L'Organisation de la jeunesse Chabad Loubavitch",
   },
 };
 

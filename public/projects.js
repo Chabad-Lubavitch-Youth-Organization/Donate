@@ -21,4 +21,5 @@ export default [
   { code: "GEN",  en: "General",     fr: "Général" },
   { code: "CHAN", en: "Chanukah",    fr: "Hanoukka" },
   { code: "TANK", en: "Mivtza Tank", fr: "Mivtza Tank" },
+  { code: "LAG",  en: "Lag Baomer",  fr: "Lag Baomer" },
 ];
