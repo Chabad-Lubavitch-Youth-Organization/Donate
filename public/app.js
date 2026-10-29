@@ -16,7 +16,7 @@ const TEXT = {
     secure: "🔒 Payments are processed securely by Moneris. We never see your card number.",
     again: "Make another donation",
     errProject: "Please choose where your gift should go.",
-    errAmount: "Please choose or enter an amount of at least $1.",
+    errAmount: "Please choose or enter an amount of at least $5.",
     errNetwork: "Something went wrong. Please try again in a moment.",
     working: "Opening secure payment…",
     thanksTitle: "Thank you!",
@@ -40,7 +40,7 @@ const TEXT = {
     secure: "🔒 Les paiements sont traités de façon sécurisée par Moneris. Nous ne voyons jamais votre numéro de carte.",
     again: "Faire un autre don",
     errProject: "Veuillez choisir un projet.",
-    errAmount: "Veuillez choisir ou entrer un montant d'au moins 1 $.",
+    errAmount: "Veuillez choisir ou entrer un montant d'au moins 5 $.",
     errNetwork: "Une erreur est survenue. Veuillez réessayer dans un instant.",
     working: "Ouverture du paiement sécurisé…",
     thanksTitle: "Merci!",
@@ -157,7 +157,7 @@ $("donateForm").addEventListener("submit", async (e) => {
   const t = TEXT[lang];
   const project = $("project").value;
   if (!project) return showError(t.errProject);
-  if (!amount || amount < 1) return showError(t.errAmount);
+  if (!amount || amount < 5) return showError(t.errAmount);
 
   const btn = $("donateBtn");
   btn.disabled = true;
@@ -171,11 +171,13 @@ $("donateForm").addEventListener("submit", async (e) => {
       body: JSON.stringify({ amount, project, lang }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ticket) throw new Error(t.errNetwork);
+    if (!res.ok || !data.ticket) throw new Error("Preload failed: " + res.status + " " + JSON.stringify(data));
 
     await loadMonerisScript(data.mode);
     openCheckout(data.ticket, data.mode, project);
   } catch (err) {
+    console.error("Donation error:", err);
+    closeCheckout();
     showError(t.errNetwork);
   } finally {
     btn.disabled = false;
@@ -184,16 +186,26 @@ $("donateForm").addEventListener("submit", async (e) => {
   }
 });
 
+// Moneris's script defines a global "monerisCheckout" that is not always
+// attached to window, so we check the global name itself.
+const monerisReady = () => typeof monerisCheckout === "function";
+let monerisScript = null;
+
 function loadMonerisScript(mode) {
-  if (window.monerisCheckout) return Promise.resolve();
+  if (monerisReady()) return Promise.resolve();
+  if (monerisScript) return monerisScript;
   const host = mode === "prod" ? "gateway.moneris.com" : "gatewayt.moneris.com";
-  return new Promise((resolve, reject) => {
+  monerisScript = new Promise((resolve, reject) => {
     const s = document.createElement("script");
     s.src = `https://${host}/chktv2/js/chkt_v3.00.js`;
-    s.onload = resolve;
-    s.onerror = () => reject(new Error(TEXT[lang].errNetwork));
+    s.onload = () => (monerisReady() ? resolve() : reject(new Error("Moneris script loaded but monerisCheckout not found")));
+    s.onerror = () => {
+      monerisScript = null;
+      reject(new Error("Could not load Moneris script"));
+    };
     document.head.appendChild(s);
   });
+  return monerisScript;
 }
 
 function openCheckout(newTicket, mode, project) {
@@ -202,7 +214,7 @@ function openCheckout(newTicket, mode, project) {
   $("checkoutOverlay").hidden = false;
   document.body.style.overflow = "hidden";
 
-  checkout = new window.monerisCheckout();
+  checkout = new monerisCheckout(); // eslint-disable-line no-undef
   checkout.setMode(mode === "prod" ? "prod" : "qa");
   checkout.setCheckoutDiv("monerisCheckout");
 
@@ -228,7 +240,8 @@ function openCheckout(newTicket, mode, project) {
   checkout.setCallback("cancel_transaction", onClose);
   checkout.setCallback("page_closed", onClose);
 
-  checkout.setCallback("error_event", () => {
+  checkout.setCallback("error_event", (msg) => {
+    console.error("Moneris error_event:", msg);
     if (finished) return;
     closeCheckout();
     showError(TEXT[lang].errNetwork);
