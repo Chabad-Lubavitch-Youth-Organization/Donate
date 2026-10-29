@@ -7,6 +7,23 @@ import projects from "../../public/projects.js";
 import { monerisConfig, callMoneris, json } from "../lib/moneris.mjs";
 
 const MIN_AMOUNT = 5;
+
+const DEDICATIONS = {
+  MEM: "In memory of",
+  HON: "In honour of",
+  MER: "In the merit of",
+  REC: "For the recovery of",
+};
+
+// Moneris accepts only plain characters in these fields.
+const plain = (text, max) =>
+  String(text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9 _\-:.@]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
 const MAX_AMOUNT = 50000;
 
 export default async (req) => {
@@ -33,11 +50,25 @@ export default async (req) => {
     return json({ error: `Amount must be between $${MIN_AMOUNT} and $${MAX_AMOUNT}.` }, 400);
   }
 
-  // Project: must be one of the codes in projects.js
-  const project = projects.find((p) => p.code === String(body.project || ""));
+  // Project: one of the codes in projects.js, or OTHER with the donor's own description
+  let project = projects.find((p) => p.code === String(body.project || ""));
+  if (body.project === "OTHER") {
+    const text = plain(body.otherText, 40);
+    if (!/[A-Za-z]/.test(text)) return json({ error: "Please describe the purpose." }, 400);
+    project = { code: "OTHER", en: `Other - ${text}` };
+  }
   if (!project) return json({ error: "Please choose a project." }, 400);
 
   const lang = body.lang === "fr" ? "fr" : "en";
+
+  // Optional dedication, e.g. "In memory of Sarah bat Moshe"
+  let dedication = "";
+  if (DEDICATIONS[body.dedType]) {
+    const name = plain(body.dedName, 80);
+    if (!name) return json({ error: "Please enter the name for the dedication." }, 400);
+    dedication = `${DEDICATIONS[body.dedType]} ${name}`;
+  }
+  const projectName = plain(project.en, 50) || project.code;
 
   // Order number: PROJECT-YYYYMMDD-RANDOM, e.g. CHAN-20261128-K7Q2ZX
   // The project code at the front makes it easy to filter Moneris reports.
@@ -57,20 +88,28 @@ export default async (req) => {
     action: "preload",
     order_no: orderNo,
     // Cust ID shows on the Moneris receipt and reports: the project's English name.
-    // Moneris allows letters, digits, spaces and _ - : . @ (max 50 characters).
-    cust_id: project.en
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^A-Za-z0-9 _\-:.@]/g, "")
-      .trim()
-      .slice(0, 50) || project.code,
+    cust_id: projectName,
     language: lang,
+    // One "cart" line describing the gift, shown in the Moneris order summary,
+    // e.g. "Donation - Chanukah - In memory of Sarah bat Moshe"
+    cart: {
+      items: [
+        {
+          description: ["Donation", projectName, dedication].filter(Boolean).join(" - ").slice(0, 200),
+          product_code: project.code,
+          unit_cost: amount.toFixed(2),
+          quantity: "1",
+        },
+      ],
+      subtotal: amount.toFixed(2),
+    },
   };
 
   try {
     const data = await callMoneris(cfg, payload);
     const r = data && data.response;
     if (r && String(r.success) === "true" && r.ticket) {
+      console.log(`STARTED order=${orderNo} amount=${amount.toFixed(2)} project=${projectName}${dedication ? " dedication=" + dedication : ""}`);
       return json({ ticket: r.ticket, orderNo, mode: cfg.env });
     }
     console.error("Moneris preload failed:", JSON.stringify(r && r.error));

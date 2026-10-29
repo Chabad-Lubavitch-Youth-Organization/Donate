@@ -11,12 +11,21 @@ const TEXT = {
     intro: "Your generous gift supports the programs and activities of the Chabad Lubavitch Youth Organization.",
     projectLabel: "Where should your gift go?",
     amountLabel: "Amount (CAD)",
-    otherPlaceholder: "Other amount",
+    otherPlaceholder: "Enter amount",
+    otherProject: "Other (please specify)",
+    otherProjPlaceholder: "Please describe (English letters)",
+    errOtherProj: "Please describe what your gift is for, in English letters.",
+    dedLabel: "Dedication (optional)",
+    dedPlaceholder: "Name (English letters)",
+    dedTypes: { "": "No dedication", MEM: "In memory of", HON: "In honour of", MER: "In the merit of", REC: "For the recovery of" },
+    errDedName: "Please enter the name for the dedication.",
+    errDedLatin: "Please write the name in English letters.",
+    dDedication: "Dedication",
     donateBtn: "Donate",
     secure: "🔒 Payments are processed securely by Moneris. We never see your card number.",
     again: "Make another donation",
     errProject: "Please choose where your gift should go.",
-    errAmount: "Please choose or enter an amount of at least $5.",
+    errAmount: "Please enter an amount of at least $5.",
     errNetwork: "Something went wrong. Please try again in a moment.",
     working: "Opening secure payment…",
     thanksTitle: "Thank you!",
@@ -37,12 +46,21 @@ const TEXT = {
     intro: "Votre généreux don soutient les programmes et activités de l'Organisation de la jeunesse Chabad Loubavitch.",
     projectLabel: "À quel projet destinez-vous votre don?",
     amountLabel: "Montant (CAD)",
-    otherPlaceholder: "Autre montant",
+    otherPlaceholder: "Entrez le montant",
+    otherProject: "Autre (veuillez préciser)",
+    otherProjPlaceholder: "Veuillez préciser (lettres latines)",
+    errOtherProj: "Veuillez préciser l'objet de votre don, en lettres latines.",
+    dedLabel: "Dédicace (facultatif)",
+    dedPlaceholder: "Nom (lettres latines)",
+    dedTypes: { "": "Aucune dédicace", MEM: "À la mémoire de", HON: "En l'honneur de", MER: "Au mérite de", REC: "Pour la guérison de" },
+    errDedName: "Veuillez entrer le nom pour la dédicace.",
+    errDedLatin: "Veuillez écrire le nom en lettres latines.",
+    dDedication: "Dédicace",
     donateBtn: "Donner",
     secure: "🔒 Les paiements sont traités de façon sécurisée par Moneris. Nous ne voyons jamais votre numéro de carte.",
     again: "Faire un autre don",
     errProject: "Veuillez choisir un projet.",
-    errAmount: "Veuillez choisir ou entrer un montant d'au moins 5 $.",
+    errAmount: "Veuillez entrer un montant d'au moins 5 $.",
     errNetwork: "Une erreur est survenue. Veuillez réessayer dans un instant.",
     working: "Ouverture du paiement sécurisé…",
     thanksTitle: "Merci!",
@@ -90,6 +108,7 @@ function applyLang() {
     el.placeholder = t[el.dataset.i18nPlaceholder];
   });
   fillProjects();
+  fillDedications();
   updateButton();
 }
 
@@ -97,6 +116,7 @@ $("langToggle").addEventListener("click", () => {
   lang = lang === "en" ? "fr" : "en";
   try { localStorage.setItem("donateLang", lang); } catch {}
   applyLang();
+  hideError();
 });
 
 // ---------- Projects ----------
@@ -110,31 +130,54 @@ function fillProjects() {
     opt.textContent = p[lang] || p.en;
     sel.appendChild(opt);
   }
-  if (current && projects.some((p) => p.code === current)) sel.value = current;
+  const other = document.createElement("option");
+  other.value = "OTHER";
+  other.textContent = TEXT[lang].otherProject;
+  sel.appendChild(other);
+  if (current && (current === "OTHER" || projects.some((p) => p.code === current))) sel.value = current;
+  $("otherProject").hidden = sel.value !== "OTHER";
 }
 
+$("project").addEventListener("change", () => {
+  const isOther = $("project").value === "OTHER";
+  $("otherProject").hidden = !isOther;
+  if (isOther) $("otherProject").focus();
+  hideError();
+});
+
 const projectName = (code) => {
+  if (code === "OTHER") return $("otherProject").value.trim();
   const p = projects.find((x) => x.code === code);
   return p ? p[lang] || p.en : code;
 };
+
+// ---------- Dedication ----------
+function fillDedications() {
+  const sel = $("dedType");
+  const current = sel.value;
+  sel.innerHTML = "";
+  for (const [code, label] of Object.entries(TEXT[lang].dedTypes)) {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+  sel.value = current || "";
+}
+
+$("dedType").addEventListener("change", () => {
+  const on = $("dedType").value !== "";
+  $("dedName").disabled = !on;
+  if (on) $("dedName").focus();
+  else $("dedName").value = "";
+  hideError();
+});
 
 // ---------- Amount ----------
 const money = (n) =>
   new Intl.NumberFormat(lang === "fr" ? "fr-CA" : "en-CA", { style: "currency", currency: "CAD" }).format(n);
 
-document.querySelectorAll(".chip").forEach((chip) => {
-  chip.addEventListener("click", () => {
-    document.querySelectorAll(".chip").forEach((c) => c.classList.remove("selected"));
-    chip.classList.add("selected");
-    $("otherAmount").value = "";
-    amount = Number(chip.dataset.amount);
-    hideError();
-    updateButton();
-  });
-});
-
 $("otherAmount").addEventListener("input", (e) => {
-  document.querySelectorAll(".chip").forEach((c) => c.classList.remove("selected"));
   const v = Number(e.target.value);
   amount = Number.isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
   hideError();
@@ -161,7 +204,13 @@ $("donateForm").addEventListener("submit", async (e) => {
   const t = TEXT[lang];
   const project = $("project").value;
   if (!project) return showError(t.errProject);
+  const otherText = project === "OTHER" ? $("otherProject").value.trim() : "";
+  if (project === "OTHER" && !/[A-Za-z]/.test(otherText)) return showError(t.errOtherProj);
   if (!amount || amount < 5) return showError(t.errAmount);
+  const dedType = $("dedType").value;
+  const dedName = $("dedName").value.trim();
+  if (dedType && !dedName) return showError(t.errDedName);
+  if (dedType && !/[A-Za-z]/.test(dedName)) return showError(t.errDedLatin);
 
   const btn = $("donateBtn");
   btn.disabled = true;
@@ -172,13 +221,13 @@ $("donateForm").addEventListener("submit", async (e) => {
     const res = await fetch("/api/preload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, project, lang }),
+      body: JSON.stringify({ amount, project, otherText, lang, dedType, dedName }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ticket) throw new Error("Preload failed: " + res.status + " " + JSON.stringify(data));
 
     await loadMonerisScript(data.mode);
-    openCheckout(data.ticket, data.mode, project);
+    openCheckout(data.ticket, data.mode, project, dedType ? `${t.dedTypes[dedType]} ${dedName}` : "");
   } catch (err) {
     console.error("Donation error:", err);
     closeCheckout();
@@ -212,7 +261,7 @@ function loadMonerisScript(mode) {
   return monerisScript;
 }
 
-function openCheckout(newTicket, mode, project) {
+function openCheckout(newTicket, mode, project, dedication) {
   ticket = newTicket;
   finished = false;
   $("checkoutOverlay").hidden = false;
@@ -231,7 +280,7 @@ function openCheckout(newTicket, mode, project) {
     if (finished) return;
     finished = true;
     closeCheckout();
-    confirmPayment(ticketFrom(msg), project);
+    confirmPayment(ticketFrom(msg), project, dedication);
   };
   checkout.setCallback("payment_receipt", onDone);
   checkout.setCallback("payment_complete", onDone);
@@ -261,7 +310,7 @@ function closeCheckout() {
   document.body.style.overflow = "";
 }
 
-async function confirmPayment(tk, project) {
+async function confirmPayment(tk, project, dedication) {
   const t = TEXT[lang];
   try {
     const res = await fetch("/api/receipt", {
@@ -275,6 +324,7 @@ async function confirmPayment(tk, project) {
       showResult(t.thanksTitle, t.thanksText(r.firstName), [
         [t.dAmount, r.amount ? money(Number(r.amount)) : money(amount)],
         [t.dProject, projectName(project)],
+        [t.dDedication, dedication],
         [t.dOrder, r.orderNo],
       ]);
     } else {

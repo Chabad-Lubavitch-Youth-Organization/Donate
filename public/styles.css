@@ -49,7 +49,7 @@ body {
   max-width: 528px;
   position: relative;
   margin: 10px 16px 8px;
-  padding: 18px 28px 18px;
+  padding: 16px 28px 16px;
   background: var(--card);
   border-radius: 18px;
   border-top: 5px solid var(--gold);
@@ -59,7 +59,7 @@ body {
 .logo {
   display: block;
   margin: 0 auto 6px;
-  width: 140px;
+  width: 130px;
   max-width: 45%;
   height: auto;
 }
@@ -78,17 +78,17 @@ h1 {
   text-align: center;
   color: var(--muted);
   font-size: 15px;
-  margin: 0 0 6px;
+  margin: 0;
 }
 
 .label {
   display: block;
   font-weight: 600;
   font-size: 14px;
-  margin: 12px 0 5px;
+  margin: 10px 0 5px;
 }
 
-select, .other input {
+select, .other input, .otherProject {
   width: 100%;
   font: inherit;
   padding: 10px 14px;
@@ -97,7 +97,7 @@ select, .other input {
   background: #fff;
   color: var(--ink);
 }
-select:focus, .other input:focus, .chip:focus-visible, .donate:focus-visible, .lang:focus-visible {
+select:focus, .other input:focus, .otherProject:focus, .chip:focus-visible, .donate:focus-visible, .lang:focus-visible {
   outline: 3px solid rgba(192, 138, 42, 0.35);
   outline-offset: 1px;
   border-color: var(--gold);
@@ -140,6 +140,29 @@ select:focus, .other input:focus, .chip:focus-visible, .donate:focus-visible, .l
 }
 .other input { padding-left: 28px; }
 
+.otherProject { margin-top: 8px; }
+
+.dedic {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 8px;
+}
+.dedic input {
+  width: 100%;
+  font: inherit;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+.dedic input:disabled { background: #f6f7f9; }
+.dedic input:focus {
+  outline: 3px solid rgba(192, 138, 42, 0.35);
+  outline-offset: 1px;
+  border-color: var(--gold);
+}
+
 .error {
   color: var(--error);
   font-size: 14px;
@@ -148,7 +171,7 @@ select:focus, .other input:focus, .chip:focus-visible, .donate:focus-visible, .l
 
 .donate {
   width: 100%;
-  margin-top: 14px;
+  margin-top: 12px;
   padding: 12px;
   font: inherit;
   font-weight: 600;
@@ -212,6 +235,6 @@ select:focus, .other input:focus, .chip:focus-visible, .donate:focus-visible, .l
 @media (max-width: 480px) {
   .card { padding: 20px 16px 18px; }
   h1 { font-size: 24px; }
-  .amounts { grid-template-columns: repeat(3, 1fr); }
+  .dedic { grid-template-columns: 1fr; }
   .logo { width: 120px; }
 }
