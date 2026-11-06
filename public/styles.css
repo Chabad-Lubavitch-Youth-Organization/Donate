@@ -209,19 +209,6 @@ select:focus, .other input:focus, .otherProject:focus, .chip:focus-visible, .don
 .details dt { color: var(--muted); }
 .details dd { margin: 0; font-weight: 600; text-align: right; }
 
-#checkoutOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: rgba(21, 33, 63, 0.55);
-  overflow: auto;
-}
-#monerisCheckout {
-  max-width: 900px;
-  margin: 0 auto;
-  min-height: 100%;
-}
-
 .org {
   max-width: 528px;
   margin: 0 16px 10px;

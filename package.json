@@ -1,0 +1,9 @@
+{
+  "name": "clyo-donate",
+  "private": true,
+  "type": "module",
+  "description": "Donation page for the Chabad Lubavitch Youth Organization (Stripe Checkout on Netlify)",
+  "dependencies": {
+    "stripe": "^23.1.0"
+  }
+}

@@ -1,5 +1,5 @@
 // Donation page logic: language toggle, project list, amount choice,
-// and opening the secure Moneris Checkout form.
+// sending the donor to Stripe's secure payment page, and the thank-you message.
 
 import projects from "./projects.js";
 
@@ -22,7 +22,10 @@ const TEXT = {
     errDedLatin: "Please write the name in English letters.",
     dDedication: "Dedication",
     donateBtn: "Donate",
-    secure: "🔒 Payments are processed securely by Moneris. We never see your card number.",
+    secure: "🔒 Payments are processed securely by Stripe. We never see your card number.",
+    cancelled: "Your donation was cancelled and your card was not charged.",
+    processingTitle: "Thank you – payment in progress",
+    processingText: "Your bank payment is being processed. You will receive a confirmation by email once it is complete.",
     again: "Make another donation",
     errProject: "Please choose where your gift should go.",
     errAmount: "Please enter an amount of at least $5.",
@@ -57,7 +60,10 @@ const TEXT = {
     errDedLatin: "Veuillez écrire le nom en lettres latines.",
     dDedication: "Dédicace",
     donateBtn: "Donner",
-    secure: "🔒 Les paiements sont traités de façon sécurisée par Moneris. Nous ne voyons jamais votre numéro de carte.",
+    secure: "🔒 Les paiements sont traités de façon sécurisée par Stripe. Nous ne voyons jamais votre numéro de carte.",
+    cancelled: "Votre don a été annulé et votre carte n'a pas été débitée.",
+    processingTitle: "Merci – paiement en cours",
+    processingText: "Votre paiement bancaire est en cours de traitement. Vous recevrez une confirmation par courriel une fois terminé.",
     again: "Faire un autre don",
     errProject: "Veuillez choisir un projet.",
     errAmount: "Veuillez entrer un montant d'au moins 5 $.",
@@ -81,9 +87,6 @@ const TEXT = {
 const $ = (id) => document.getElementById(id);
 let lang = loadLang();
 let amount = null;
-let ticket = null;
-let checkout = null;
-let finished = false;
 
 // ---------- Language ----------
 function loadLang() {
@@ -218,121 +221,74 @@ $("donateForm").addEventListener("submit", async (e) => {
   btn.textContent = t.working;
 
   try {
-    const res = await fetch("/api/preload", {
+    const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount, project, otherText, lang, dedType, dedName }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ticket) throw new Error("Preload failed: " + res.status + " " + JSON.stringify(data));
-
-    await loadMonerisScript(data.mode);
-    openCheckout(data.ticket, data.mode, project, dedType ? `${t.dedTypes[dedType]} ${dedName}` : "");
+    if (!res.ok || !data.url) throw new Error("Checkout failed: " + res.status + " " + JSON.stringify(data));
+    // Go to Stripe's secure payment page; Stripe sends the donor back here afterwards.
+    location.assign(data.url);
   } catch (err) {
     console.error("Donation error:", err);
-    closeCheckout();
     showError(t.errNetwork);
-  } finally {
     btn.disabled = false;
     btn.innerHTML = btnHtml;
     updateButton();
   }
 });
 
-// Moneris's script defines a global "monerisCheckout" that is not always
-// attached to window, so we check the global name itself.
-const monerisReady = () => typeof monerisCheckout === "function";
-let monerisScript = null;
+// The page is shown again if the donor uses the Back button from Stripe.
+window.addEventListener("pageshow", (e) => {
+  if (!e.persisted) return;
+  const btn = $("donateBtn");
+  btn.disabled = false;
+  btn.innerHTML = '<span data-i18n="donateBtn"></span> <span id="btnAmount"></span>';
+  applyLang();
+});
 
-function loadMonerisScript(mode) {
-  if (monerisReady()) return Promise.resolve();
-  if (monerisScript) return monerisScript;
-  const host = mode === "prod" ? "gateway.moneris.com" : "gatewayt.moneris.com";
-  monerisScript = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = `https://${host}/chktv2/js/chkt_v3.00.js`;
-    s.onload = () => (monerisReady() ? resolve() : reject(new Error("Moneris script loaded but monerisCheckout not found")));
-    s.onerror = () => {
-      monerisScript = null;
-      reject(new Error("Could not load Moneris script"));
-    };
-    document.head.appendChild(s);
-  });
-  return monerisScript;
-}
-
-function openCheckout(newTicket, mode, project, dedication) {
-  ticket = newTicket;
-  finished = false;
-  $("checkoutOverlay").hidden = false;
-  document.body.style.overflow = "hidden";
-
-  checkout = new monerisCheckout(); // eslint-disable-line no-undef
-  checkout.setMode(mode === "prod" ? "prod" : "qa");
-  checkout.setCheckoutDiv("monerisCheckout");
-
-  const ticketFrom = (msg) => {
-    try { return JSON.parse(msg).ticket || ticket; } catch { return ticket; }
-  };
-
-  // Payment finished: confirm with our server, then show the result.
-  const onDone = (msg) => {
-    if (finished) return;
-    finished = true;
-    closeCheckout();
-    confirmPayment(ticketFrom(msg), project, dedication);
-  };
-  checkout.setCallback("payment_receipt", onDone);
-  checkout.setCallback("payment_complete", onDone);
-
-  // Donor cancelled or closed the window.
-  const onClose = () => {
-    if (finished) return;
-    closeCheckout();
-  };
-  checkout.setCallback("cancel_transaction", onClose);
-  checkout.setCallback("page_closed", onClose);
-
-  checkout.setCallback("error_event", (msg) => {
-    console.error("Moneris error_event:", msg);
-    if (finished) return;
-    closeCheckout();
-    showError(TEXT[lang].errNetwork);
-  });
-
-  checkout.startCheckout(ticket);
-}
-
-function closeCheckout() {
-  try { checkout && checkout.closeCheckout(ticket); } catch {}
-  $("checkoutOverlay").hidden = true;
-  $("monerisCheckout").innerHTML = "";
-  document.body.style.overflow = "";
-}
-
-async function confirmPayment(tk, project, dedication) {
+// ---------- Back from Stripe ----------
+async function handleReturn() {
+  const q = new URLSearchParams(location.search);
   const t = TEXT[lang];
+
+  if (q.get("cancelled")) {
+    showError(t.cancelled);
+    cleanUrl();
+    return;
+  }
+
+  const sessionId = q.get("session_id");
+  if (!sessionId) return;
+  cleanUrl();
+
   try {
-    const res = await fetch("/api/receipt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ticket: tk }),
-    });
+    const res = await fetch("/api/session?id=" + encodeURIComponent(sessionId));
     const r = await res.json();
     if (!res.ok) throw new Error();
-    if (r.approved) {
-      showResult(t.thanksTitle, t.thanksText(r.firstName), [
-        [t.dAmount, r.amount ? money(Number(r.amount)) : money(amount)],
-        [t.dProject, projectName(project)],
-        [t.dDedication, dedication],
-        [t.dOrder, r.orderNo],
-      ]);
-    } else {
-      showResult(t.declinedTitle, t.declinedText, []);
-    }
+    const projectLabel = r.projectCode === "OTHER" ? r.otherText : projectName(r.projectCode);
+    const rows = [
+      [t.dAmount, r.amount ? money(r.amount) : ""],
+      [t.dProject, projectLabel],
+      [t.dOrder, r.orderNo],
+    ];
+    if (r.status === "paid") showResult(t.thanksTitle, t.thanksText(r.firstName), rows);
+    else if (r.status === "processing") showResult(t.processingTitle, t.processingText, rows);
+    else showResult(t.declinedTitle, t.declinedText, []);
   } catch {
     showResult(t.pendingTitle, t.pendingText, []);
   }
+}
+
+// Remove ?session_id=… from the address bar, so a refresh or a shared link
+// doesn't show the thank-you message again.
+function cleanUrl() {
+  const q = new URLSearchParams(location.search);
+  q.delete("session_id");
+  q.delete("cancelled");
+  const rest = q.toString();
+  history.replaceState(null, "", location.pathname + (rest ? "?" + rest : ""));
 }
 
 function showResult(title, text, rows) {
@@ -360,3 +316,4 @@ $("againBtn").addEventListener("click", () => {
 
 // ---------- Start ----------
 applyLang();
+handleReturn();
