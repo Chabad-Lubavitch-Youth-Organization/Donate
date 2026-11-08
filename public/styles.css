@@ -211,10 +211,10 @@ select:focus, .other input:focus, .otherProject:focus, .chip:focus-visible, .don
 
 .org {
   max-width: 528px;
-  margin: 0 16px 10px;
+  margin: 0 16px 4px;
   text-align: center;
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.35;
   color: var(--muted);
 }
 .org strong { font-weight: 600; color: var(--ink); }
@@ -223,5 +223,6 @@ select:focus, .other input:focus, .otherProject:focus, .chip:focus-visible, .don
   .card { padding: 20px 16px 18px; }
   h1 { font-size: 24px; }
   .dedic { grid-template-columns: 1fr; }
-  .logo { width: 120px; }
+  .logo { width: 110px; }
+  .card { margin-top: 6px; }
 }

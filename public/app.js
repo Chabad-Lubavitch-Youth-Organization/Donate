@@ -41,6 +41,8 @@ const TEXT = {
     dProject: "Project",
     dOrder: "Reference",
     charityNo: "Charitable registration no.",
+    headOffice: "Head office: 3429 Peel Street, Montréal, QC\u00a0H3A\u00a01W7",
+    mailAddress: "Mailing address: 4842 Carlton Ave., Montréal, QC\u00a0H3W\u00a01G6",
     orgName: "Chabad Lubavitch Youth Organization",
   },
   fr: {
@@ -79,6 +81,8 @@ const TEXT = {
     dProject: "Projet",
     dOrder: "Référence",
     charityNo: "No d'enregistrement d'organisme de bienfaisance",
+    headOffice: "Siège social\u00a0: 3429, rue Peel, Montréal (Québec)\u00a0H3A\u00a01W7",
+    mailAddress: "Adresse postale\u00a0: 4842, avenue Carlton, Montréal (Québec)\u00a0H3W\u00a01G6",
     orgName: "L'Organisation de la jeunesse Chabad Loubavitch",
   },
 };
