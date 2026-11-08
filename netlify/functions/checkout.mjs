@@ -15,10 +15,10 @@ const MAX_AMOUNT = 50000;
 const INTEGRATION_ID = "clyo-donate-page-QXRMBTKA";
 
 const DEDICATIONS = {
-  MEM: { en: "In memory of", fr: "À la mémoire de" },
-  HON: { en: "In honour of", fr: "En l'honneur de" },
-  MER: { en: "In the merit of", fr: "Au mérite de" },
-  REC: { en: "For the recovery of", fr: "Pour la guérison de" },
+  MEM: { en: "In memory of", fr: "À la mémoire de", he: "לעילוי נשמת" },
+  HON: { en: "In honour of", fr: "En l'honneur de", he: "לכבוד" },
+  MER: { en: "In the merit of", fr: "Au mérite de", he: "לזכות" },
+  REC: { en: "For the recovery of", fr: "Pour la guérison de", he: "לרפואת" },
 };
 
 // Plain, tidy text for names and descriptions.
@@ -66,15 +66,15 @@ export default async (req) => {
   }
   const cents = Math.round(amount * 100);
 
-  const lang = body.lang === "fr" ? "fr" : "en";
+  const lang = ["fr", "he"].includes(body.lang) ? body.lang : "en";
 
   // Project: one of the codes in projects.js, or OTHER with the donor's own description
   let project = projects.find((p) => p.code === String(body.project || ""));
   let otherText = "";
   if (body.project === "OTHER") {
     otherText = clean(body.otherText, 60);
-    if (!/[A-Za-z]/.test(otherText)) return json({ error: "Please describe the purpose." }, 400);
-    project = { code: "OTHER", en: `Other - ${otherText}`, fr: `Autre - ${otherText}` };
+    if (!/\p{L}/u.test(otherText)) return json({ error: "Please describe the purpose." }, 400);
+    project = { code: "OTHER", en: `Other - ${otherText}`, fr: `Autre - ${otherText}`, he: `אחר - ${otherText}` };
   }
   if (!project) return json({ error: "Please choose a project." }, 400);
 
@@ -121,7 +121,10 @@ export default async (req) => {
             currency: "cad",
             unit_amount: cents,
             product_data: {
-              name: lang === "fr" ? `Don – ${project.fr || projectEn}` : `Donation – ${projectEn}`,
+              name: {
+                fr: `Don – ${project.fr || projectEn}`,
+                he: `תרומה – ${project.he || projectEn}`,
+              }[lang] || `Donation – ${projectEn}`,
               ...(dedicationShown ? { description: dedicationShown } : {}),
             },
           },

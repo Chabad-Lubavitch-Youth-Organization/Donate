@@ -13,7 +13,11 @@
 </head>
 <body>
   <main class="card">
-    <button type="button" id="langToggle" class="lang" aria-label="Changer la langue / Change language">Français</button>
+    <div class="langs" role="group" aria-label="Language / Langue / שפה">
+      <button type="button" class="lang" data-lang="en" lang="en">EN</button>
+      <button type="button" class="lang" data-lang="fr" lang="fr">FR</button>
+      <button type="button" class="lang" data-lang="he" lang="he">עב</button>
+    </div>
     <img src="logo.png" alt="Chabad Lubavitch Youth Organization" class="logo" width="170">
 
     <!-- Donation form -->
@@ -25,10 +29,10 @@
         <label for="project" class="label" data-i18n="projectLabel">Where should your gift go?</label>
         <select id="project" name="project"></select>
         <input id="otherProject" class="otherProject" type="text" maxlength="60" autocomplete="off" hidden
-               placeholder="Please describe (English letters)" data-i18n-placeholder="otherProjPlaceholder" aria-label="Other purpose">
+               placeholder="Please describe" data-i18n-placeholder="otherProjPlaceholder" aria-label="Other purpose">
 
         <label for="otherAmount" class="label" data-i18n="amountLabel">Amount (CAD)</label>
-        <div class="other">
+        <div class="other" dir="ltr">
           <span class="dollar">$</span>
           <input id="otherAmount" type="number" inputmode="decimal" min="5" step="0.01"
                  placeholder="Enter amount" data-i18n-placeholder="otherPlaceholder">
@@ -38,7 +42,7 @@
         <div class="dedic">
           <select id="dedType"></select>
           <input id="dedName" type="text" maxlength="80" autocomplete="off" disabled
-                 placeholder="Name (English letters)" data-i18n-placeholder="dedPlaceholder" aria-label="Name">
+                 placeholder="Name" data-i18n-placeholder="dedPlaceholder" aria-label="Name">
         </div>
 
         <p id="formError" class="error" role="alert" hidden></p>
@@ -63,7 +67,7 @@
     <strong data-i18n="orgName">Chabad Lubavitch Youth Organization</strong><br>
     <span data-i18n="headOffice">Head office: 3429 Peel Street, Montréal, QC H3A 1W7</span><br>
     <span data-i18n="mailAddress">Mailing address: 4842 Carlton Ave., Montréal, QC H3W 1G6</span><br>
-    <span data-i18n="charityNo">Charitable registration no.</span> 134232644RR0001
+    <span class="reg"><span data-i18n="charityNo">Charitable registration no.</span> 134232644RR0001</span>
   </footer>
 
   <script type="module" src="app.js"></script>

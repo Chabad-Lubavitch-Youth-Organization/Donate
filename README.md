@@ -1,6 +1,6 @@
 # Chabad Lubavitch Youth Organization – Donation page
 
-Online donation page with a project choice and an English/French toggle.
+Online donation page with a project choice and English / French / Hebrew (עב) language buttons.
 Payments are processed on **Stripe's secure payment page (Stripe Checkout)**; this site never sees card numbers.
 
 ## What's in here
@@ -42,8 +42,12 @@ The secret values live only in Netlify, never in these files.
 ## Editing projects
 
 1. On GitHub, open `public/projects.js` and click the pencil icon.
-2. Copy a line, change the code and names, keep the comma at the end.
+2. Copy a line, change the code and the English (`en`), French (`fr`) and Hebrew (`he`) names, keep the comma at the end.
 3. Click **Commit changes**. The live page updates in about a minute.
+
+**Order of the list:** at the top of `projects.js`, `SORT = "year"` shows the projects in the order they're
+written (the Jewish year). Change it to `SORT = "alphabet"` to sort them alphabetically in each language.
+The first project (General Donation) always stays on top and "Other" at the bottom.
 
 Keep the same `code` for a project from year to year (for example `CHAN`). Each donation's
 reference looks like `CHAN-20261128-K7Q2ZX`: project code, date, random letters.
@@ -51,7 +55,7 @@ That reference is saved on the payment in Stripe (`order_no`), together with the
 dedication and language.
 
 A link with `?project=CHAN` opens the page with that project pre-selected,
-and `?lang=fr` opens it in French – useful for project-specific QR codes.
+`?lang=fr` opens it in French and `?lang=he` in Hebrew – useful for project-specific QR codes.
 
 ## Where to see donations
 
