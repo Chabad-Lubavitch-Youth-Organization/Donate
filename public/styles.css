@@ -29,12 +29,23 @@ body {
   line-height: 1.5;
 }
 
+/* Language buttons: always top-left, always in the order EN FR עב */
 .langs {
   position: absolute;
   top: 14px;
-  inset-inline-end: 14px;
+  left: 14px;
+  direction: ltr;
   display: flex;
   gap: 4px;
+}
+/* בס״ד: always top-right */
+.bsd {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-family: "Frank Ruhl Libre", Georgia, serif;
+  font-size: 14px;
+  color: var(--muted);
 }
 .lang {
   background: transparent;
@@ -63,8 +74,8 @@ body {
 
 .logo {
   display: block;
-  margin: 0 auto 6px;
-  width: 130px;
+  margin: 0 auto 4px;
+  width: 115px;
   max-width: 45%;
   height: auto;
 }
@@ -84,6 +95,8 @@ h1 {
   color: var(--muted);
   font-size: 15px;
   margin: 0;
+  line-height: 1.4;
+  white-space: pre-line;
 }
 
 .label {
@@ -143,7 +156,19 @@ select:focus, .other input:focus, .otherProject:focus, .chip:focus-visible, .don
   transform: translateY(-50%);
   color: var(--muted);
 }
-.other input { padding-inline-start: 28px; }
+.other input { padding-inline-start: 28px; padding-inline-end: 56px; }
+/* "CAD" inside the amount field, on the right */
+.other .cur {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  pointer-events: none;
+}
 
 .otherProject { margin-top: 8px; }
 

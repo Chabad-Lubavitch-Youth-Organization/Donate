@@ -13,6 +13,7 @@
 </head>
 <body>
   <main class="card">
+    <div class="bsd" lang="he" dir="rtl" aria-hidden="true">בס״ד</div>
     <div class="langs" role="group" aria-label="Language / Langue / שפה">
       <button type="button" class="lang" data-lang="en" lang="en">EN</button>
       <button type="button" class="lang" data-lang="fr" lang="fr">FR</button>
@@ -34,8 +35,9 @@
         <label for="otherAmount" class="label" data-i18n="amountLabel">Amount (CAD)</label>
         <div class="other" dir="ltr">
           <span class="dollar">$</span>
-          <input id="otherAmount" type="number" inputmode="decimal" min="5" step="0.01"
+          <input id="otherAmount" type="text" inputmode="decimal" autocomplete="off" lang="en"
                  placeholder="Enter amount" data-i18n-placeholder="otherPlaceholder">
+          <span class="cur" aria-hidden="true">CAD</span>
         </div>
 
         <label for="dedType" class="label" data-i18n="dedLabel">Dedication (optional)</label>

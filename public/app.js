@@ -83,7 +83,7 @@ const TEXT = {
   },
   he: {
     title: "תרומה",
-    intro: "תרומתכם הנדיבה תומכת בתוכניות ובפעילויות של צעירי אגודת חב״ד ליובאוויטש.",
+    intro: "תרומתכם הנדיבה תומכת בתוכניות ובפעילויות של\nצעירי\u00a0אגודת\u00a0חב״ד\u00a0ליובאוויטש.",
     projectLabel: "לאיזו מטרה תרצו לתרום?",
     amountLabel: "סכום (דולר קנדי)",
     otherPlaceholder: "הזינו סכום",
@@ -242,14 +242,23 @@ $("dedType").addEventListener("change", () => {
 });
 
 // ---------- Amount ----------
-// In Hebrew the amount is written "$36.00" and kept left-to-right (\u2066 … \u2069).
+// Amounts are written the same way on every page: "$36.00".
+// In Hebrew it is kept left-to-right (\u2066 … \u2069).
 const money = (n) => {
-  const s = new Intl.NumberFormat(lang === "fr" ? "fr-CA" : "en-CA", { style: "currency", currency: "CAD" }).format(n);
+  const s = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(n);
   return lang === "he" ? "\u2066" + s + "\u2069" : s;
 };
 
+// Reads the amount the same way in every language: "55", "55.00", "55,00", "$55", "1 000" or "1,000.50".
+function parseAmount(text) {
+  let s = String(text).replace(/[\s$\u00a0]/g, "");
+  if (/^\d{1,3}(,\d{3})+(\.\d{1,2})?$/.test(s)) s = s.replace(/,/g, ""); // 1,000.50
+  else s = s.replace(",", ".");                                          // 55,00
+  return /^\d+(\.\d{1,2})?$/.test(s) ? Number(s) : NaN;
+}
+
 $("otherAmount").addEventListener("input", (e) => {
-  const v = Number(e.target.value);
+  const v = parseAmount(e.target.value);
   amount = Number.isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
   hideError();
   updateButton();
